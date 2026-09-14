@@ -1,51 +1,28 @@
+import Link from "next/link";
 import { OrgExplorer } from "@/components/OrgExplorer";
-import { deskSections } from "@/lib/org";
-import { agents } from "@/data/org";
+import { rosterCounts } from "@/lib/org";
 
 export default function Home() {
-  return (
-    <>
-      <div className="grain" aria-hidden />
-      <header className="relative z-10 border-b border-white/8">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
-          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-foreground/55">
-            Grok Bot Team
-          </p>
-          <p className="text-[11px] uppercase tracking-[0.18em] text-foreground/35">
-            Living org
-          </p>
+  return <>
+    <a className="skip-link" href="#explorer">Skip to org explorer</a>
+    <header className="masthead">
+      <Link href="/" className="wordmark"><span className="brand-mark" aria-hidden="true">d.</span> DON’S <span>ORG MAP</span></Link>
+      <div className="masthead-right"><span className="status-dot" /> THE GROK BOT TEAM <span className="edition">PUBLIC EDITION / 01</span></div>
+    </header>
+    <main>
+      <section className="hero">
+        <div><p className="eyebrow"><span /> DHIVAGAR’S EXTENDED UNIVERSE</p>
+          <h1>A cast of characters.<br /><em>A team with purpose.</em></h1>
+          <p className="hero-copy">Familiar names. Very real jobs. Meet the specialists behind the scenes,<br className="desktop-break" /> with Doug keeping the whole operation in motion.</p>
         </div>
-      </header>
-
-      <main className="relative z-10 mx-auto w-full max-w-7xl flex-1 px-5 py-10 sm:px-8 sm:py-14">
-        <section className="max-w-3xl">
-          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#e8c37a]">
-            Chief of Staff at the root
-          </p>
-          <h1 className="mt-4 font-serif text-5xl leading-[0.95] sm:text-7xl">
-            The org map
-          </h1>
-          <p className="mt-5 max-w-xl text-base leading-7 text-muted sm:text-lg">
-            Interactive directory of Dhivagar&apos;s Grok Bot team. Doug
-            coordinates. Every other agent reports to Doug.
-          </p>
-          <p className="mt-6 text-sm text-foreground/50">
-            {agents.length} agents · {deskSections.length} desks · public
-            roster only
-          </p>
-        </section>
-
-        <section className="mt-12" aria-label="Interactive org">
-          <OrgExplorer />
-        </section>
-      </main>
-
-      <footer className="relative z-10 border-t border-white/8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-6 text-xs text-foreground/40 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <p>Roster lives in one file: src/data/org.ts</p>
-          <p>No emails, phones, private IDs, or tokens.</p>
+        <div className="hero-stats" aria-label="Roster summary">
+          <div><strong>{rosterCounts.agents.toString().padStart(2,"0")}</strong><span>AGENTS</span></div>
+          <div><strong>{rosterCounts.desks.toString().padStart(2,"0")}</strong><span>DESKS</span></div>
+          <p>ONE CONNECTED OPERATION <span aria-hidden="true">↙</span></p>
         </div>
-      </footer>
-    </>
-  );
+      </section>
+      <OrgExplorer />
+    </main>
+    <footer><span className="footer-brand">Don’s Org Map <span>/</span> Dhivagar’s Grok Bot team</span><span>A little television. A lot of teamwork.</span></footer>
+  </>;
 }

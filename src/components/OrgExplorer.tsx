@@ -1,176 +1,34 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { AgentPanel } from "@/components/AgentPanel";
 import { DirectoryView } from "@/components/DirectoryView";
 import { OrgMap } from "@/components/OrgMap";
-import { sections, type Agent, type SectionId } from "@/data/org";
-import {
-  filterRoster,
-  getAgent,
-  getManager,
-  getSection,
-  rosterCounts,
-} from "@/lib/org";
-
-type ViewMode = "map" | "directory";
-
-const filterChips: Array<{ id: SectionId | "all"; label: string }> = [
-  { id: "all", label: "All desks" },
-  ...sections.map((section) => ({ id: section.id, label: section.name })),
-];
+import { type SectionId } from "@/data/org";
+import { agentsInSection, deskSections, filterRoster, getAgent, getManager, getSection, rosterCounts } from "@/lib/org";
 
 export function OrgExplorer() {
   const [query, setQuery] = useState("");
   const [sectionId, setSectionId] = useState<SectionId | "all">("all");
-  const [view, setView] = useState<ViewMode>("map");
+  const [view, setView] = useState<"map" | "directory">("map");
   const [selectedId, setSelectedId] = useState<string | null>(null);
-
-  const visible = useMemo(
-    () => filterRoster(query, sectionId),
-    [query, sectionId],
-  );
-  const visibleIds = useMemo(
-    () => new Set(visible.map((agent) => agent.id)),
-    [visible],
-  );
-
-  const selected =
-    selectedId && visibleIds.has(selectedId) ? getAgent(selectedId) : undefined;
-  const selectedSection = selected ? getSection(selected.section) : undefined;
-
+  const visible = filterRoster(query, sectionId);
+  const selected = selectedId ? getAgent(selectedId) : undefined;
   useEffect(() => {
-    function onKey(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setSelectedId(null);
-      }
-    }
+    const onKey = (event: KeyboardEvent) => {if(event.key === "Escape") setSelectedId(null);};
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
-
-  function getManagerName(agent: Agent) {
-    return getManager(agent)?.name ?? "—";
-  }
-
-  function handleSelect(id: string) {
-    setSelectedId((current) => (current === id ? null : id));
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-end">
-        <label className="block">
-          <span className="mb-2 block text-[11px] font-medium uppercase tracking-[0.16em] text-foreground/45">
-            Search the org
-          </span>
-          <input
-            type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Name, title, job, or persona"
-            className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-foreground placeholder:text-foreground/30"
-          />
-        </label>
-
-        <div
-          className="flex rounded-2xl border border-white/10 bg-black/30 p-1"
-          role="tablist"
-          aria-label="Org view"
-        >
-          {(
-            [
-              ["map", "Map"],
-              ["directory", "Directory"],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={view === id}
-              onClick={() => setView(id)}
-              className={`min-w-28 rounded-xl px-4 py-2.5 text-sm transition ${
-                view === id
-                  ? "bg-white/10 text-foreground"
-                  : "text-muted hover:text-foreground"
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by section">
-        {filterChips.map((chip) => {
-          const active = sectionId === chip.id;
-          const accent =
-            chip.id === "all"
-              ? "#f4f1ea"
-              : getSection(chip.id)?.accent ?? "#f4f1ea";
-          return (
-            <button
-              key={chip.id}
-              type="button"
-              aria-pressed={active}
-              onClick={() => setSectionId(chip.id)}
-              className={`rounded-full border px-3 py-1.5 text-xs tracking-wide transition ${
-                active
-                  ? "border-transparent text-[#07080c]"
-                  : "border-white/10 text-muted hover:border-white/25 hover:text-foreground"
-              }`}
-              style={active ? { background: accent } : undefined}
-            >
-              {chip.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <p className="text-sm text-muted" aria-live="polite">
-        Showing {visible.length} of {rosterCounts.agents}
-        {query.trim() ? ` for “${query.trim()}”` : ""}
-        {sectionId !== "all" ? ` in ${getSection(sectionId)?.name}` : ""}.
-      </p>
-
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div>
-          {view === "map" ? (
-            <OrgMap
-              visibleIds={visibleIds}
-              selectedId={selectedId}
-              onSelect={handleSelect}
-              getSection={(id) => getSection(id)!}
-            />
-          ) : (
-            <DirectoryView
-              sections={sections}
-              visible={visible}
-              selectedId={selectedId}
-              onSelect={handleSelect}
-              getSection={(id) => getSection(id)!}
-              getManagerName={getManagerName}
-            />
-          )}
-        </div>
-
-        <div className="xl:sticky xl:top-24 xl:self-start">
-          {selected && selectedSection ? (
-            <AgentPanel
-              agent={selected}
-              section={selectedSection}
-              managerName={getManagerName(selected)}
-              onClose={() => setSelectedId(null)}
-            />
-          ) : (
-            <div className="rounded-2xl border border-dashed border-white/10 px-5 py-8 text-sm text-muted">
-              Select an agent to see title, one-line job, reports-to, and
-              persona.
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
+  function reset() {setQuery(""); setSectionId("all");}
+  return <section id="explorer" className="explorer" aria-label="Interactive org explorer">
+    <div className="explorer-top"><div className="view-switch" role="group" aria-label="Org view">
+      <button aria-pressed={view === "map"} onClick={() => setView("map")}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 7v4M4 14v-3h12v3M7 3h6v4H7zM2 14h4v4H2zM8 14h4v4H8zM14 14h4v4h-4z" /></svg>Org map</button>
+      <button aria-pressed={view === "directory"} onClick={() => setView("directory")}><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 4h3v3H3zM9 5h8M3 12h3v3H3zM9 13h8" /></svg>Directory</button>
+    </div><label className="search"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8" cy="8" r="5"/><path d="m12 12 5 5"/></svg><span className="sr-only">Search the org</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Find a name, role, or persona…" /></label></div>
+    <div className="filter-row"><span className="filter-label">DESKS</span><div className="chips" role="group" aria-label="Filter by desk"><button aria-pressed={sectionId === "all"} onClick={() => setSectionId("all")}>All desks <span>{rosterCounts.agents}</span></button>{deskSections.map(section => <button key={section.id} aria-pressed={sectionId === section.id} onClick={() => setSectionId(section.id)}><i style={{background:section.accent}} />{section.name}<span>{agentsInSection(section.id).length}</span></button>)}</div></div>
+    <div className="view-meta"><p aria-live="polite">{visible.length} of {rosterCounts.agents} agents <span>/</span> {sectionId === "all" ? "The full picture" : getSection(sectionId)?.name}</p><span>{view === "map" ? "FOLLOW THE LINES. MEET THE TEAM." : "THE CAST, DESK BY DESK."}</span></div>
+    {visible.length === 0 ? <div className="empty-state"><span aria-hidden="true">◎</span><h2>No one by that name.</h2><p>Try a different name, role, or desk.</p><button onClick={reset}>Reset filters ↗</button></div> : view === "map" ? <OrgMap visibleIds={new Set(visible.map(agent => agent.id))} selectedId={selectedId} onSelect={setSelectedId} /> : <DirectoryView visible={visible} selectedId={selectedId} onSelect={setSelectedId} />}
+    <div className="explorer-bottom"><span><i /> Select any agent to open their personnel file</span><span>{view === "map" ? "SCROLL TO EXPLORE ↔" : "SIX DESKS. SHARED PURPOSE."}</span></div>
+    {selected && <AgentPanel agent={selected} section={getSection(selected.section)!} managerName={getManager(selected)?.name ?? "Root · Chief of Staff"} onClose={() => setSelectedId(null)} />}
+  </section>;
 }
