@@ -5,7 +5,7 @@ Interactive org map for **Dhivagar’s Grok Bot team**. Doug sits at the root as
 Public roster only — no emails, phones, private agent IDs, or tokens.
 
 - **GitHub:** https://github.com/dhivagar29/bot-org-map
-- **Live:** _pending_
+- **Live:** https://bot-org-map-app.vercel.app
 
 ## What’s new in this rebuild
 
